@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
+using WebApplication2.Interface;
 using WebApplication2.Models;
+using WebApplication2.Services;
 
 namespace WebApplication2
 {
@@ -22,6 +24,10 @@ namespace WebApplication2
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
+            services.AddTransient<IMailService, MailService>();
+            services.AddTransient<ITenantService, TenantService>();
+            services.AddSignalR();
         }
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) 
         { 
@@ -43,6 +49,10 @@ namespace WebApplication2
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<WebApplication2.Hubs.ChatHub>("/ChatHub"); 
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

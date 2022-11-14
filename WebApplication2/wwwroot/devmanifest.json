@@ -1,0 +1,83 @@
+﻿{
+  "lang": "en",
+  "dir": "ltr",
+  "name": "CConX.online",
+  "short_name": "CConX",
+  "description": "CConX Management Systems",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/img/cconx.png",
+      "sizes": "200x154",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/gear2red.png",
+      "sizes": "372x372",
+      "type": "image/png"
+    }
+  ],
+  "scope": "/",
+  "id": "cconx",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "rgb(0,50,50)",
+  "background_color": "rgb(0,50,50)",
+  "shortcuts": [
+    {
+      "name": "Reporting Management Solutions",
+      "short_name": "CConX",
+      "description": "View reports and dashboards",
+      "url": "/report",
+      "icons": [
+        {
+          "src": "/img/gear2blue.png",
+          "sizes": "372x372",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Scanning QR Codes",
+      "short_name": "Scan",
+      "description": "Scan qr codes directly on CConX system",
+      "url": "/scan",
+      "icons": [
+        {
+          "src": "/img/gear2orange.png",
+          "sizes": "372x372",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Setup",
+      "short_name": "Setup",
+      "description": "Setup",
+      "url": "/setup",
+      "icons": [
+        {
+          "src": "/img/gear2red.png",
+          "sizes": "372x372",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/systems.jpg",
+      "sizes": "1500x844",
+      "type": "image/jpg",
+      "platform": "wide",
+      "label": "Homescreen of Awesome App"
+    },
+    {
+      "src": "/img/logogreenbg.PNG",
+      "sizes": "513x504",
+      "type": "image/jpg",
+      "platform": "wide",
+      "label": "List of Awesome Resources available in Awesome App"
+    }
+  ]
+}
