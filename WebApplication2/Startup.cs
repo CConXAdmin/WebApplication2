@@ -60,6 +60,9 @@ namespace WebApplication2
                     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
                   ); 
                 endpoints.MapControllerRoute(
+                  name: "Report",
+                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute(
                   name: "Reports",
                     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute(

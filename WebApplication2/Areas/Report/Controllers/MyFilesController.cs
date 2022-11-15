@@ -9,5 +9,9 @@ namespace WebApplication2.Areas.Report.Controllers
         {
             return View();
         }
+        public IActionResult Index1()
+        {
+            return View();
+        }
     }
 }

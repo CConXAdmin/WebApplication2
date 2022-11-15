@@ -32,6 +32,8 @@
     <Content Remove="Areas\Report\Views\File\Test.cshtml" />
     <Content Remove="Areas\Report\Views\MyFiles\Index.cshtml" />
     <Content Remove="Areas\Report\Views\MyFiles\Test.cshtml" />
+    <Content Remove="Areas\Report\Views\_ViewImports.cshtml" />
+    <Content Remove="Areas\Report\Views\_ViewStart.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,6 +74,8 @@
     <None Include="Areas\Report\Views\File\Test.cshtml" />
     <None Include="Areas\Report\Views\MyFiles\Index.cshtml" />
     <None Include="Areas\Report\Views\MyFiles\Test.cshtml" />
+    <None Include="Areas\Report\Views\_ViewImports.cshtml" />
+    <None Include="Areas\Report\Views\_ViewStart.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
