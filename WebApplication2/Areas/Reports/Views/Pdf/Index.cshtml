@@ -1,0 +1,205 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout == true ? null : "_Layout";
+}
+<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>*
+<style>
+    #root { 
+    }
+
+    #sep {
+        height: 16px; 
+    }
+
+    #messages { 
+        height: 360px;
+        overflow: auto;
+    }
+</style>
+<button onclick="Video()">Video</button>
+<button onclick="Video2()">Pause</button>
+<button onclick="Video3()">Play</button>
+<button onclick="Reset()">Reset</button>
+<label for="audioSource">Audio source: </label>
+<select id="audioSource"><option value="">None</option></select>
+
+<label for="videoSource">Video source: </label>
+<select id="videoSource"><option value="">None</option></select>
+
+<div id="root">
+    <video id="poem-video" width="640" height="360" controls   crossorigin="anonymous" style="width: 100%;">
+        <source src="~/do-not-go-gentle.mp4" type="video/mp4"> 
+    </video>
+    <div id="sep"></div>
+    <div id="messages">
+    </div>
+</div>
+<script>
+
+    function Video2() {
+        const video = document.getElementById('poem-video');
+        video.pause();
+    }
+
+    function Video3() {
+        const video = document.getElementById('poem-video');
+        video.play();
+    }
+    function Reset() {
+          runme = true;
+    }
+    var runme = true;
+    function Video() {
+
+
+        const worker = Tesseract.createWorker({
+            //workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+            //langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            //corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+            workerPath: '/ocr/worker.min.js',
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            corePath: '/ocr/tesseract-core.wasm.js',
+        });
+        const scheduler = Tesseract.createScheduler();
+        const video = document.getElementById('poem-video');
+        const messages = document.getElementById('messages');
+        let timerId = null;
+
+        const addMessage = (m, bold) => {
+
+            let msg = `<p>${m}</p>`;
+            if (bold) {
+                msg = `<p class="bold">${m}</p>`;
+            }
+            messages.innerHTML += msg;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+
+        const doOCR = async () => {
+            if (!runme) {
+                return;
+            }
+            runme = false;
+            const c = document.createElement('canvas');
+            c.width = 640;
+            c.height = 360;
+            c.getContext('2d').drawImage(video, 0, 0, 640, 360);
+            const start = new Date();
+            const {
+                data: {
+                    text
+                }
+            } = await scheduler.addJob('recognize', c);
+            const end = new Date()
+            messages.innerHTML = "";
+            addMessage(`[${start.getMinutes()}:${start.getSeconds()} - ${end.getMinutes()}:${end.getSeconds()}], ${(end - start) / 1000} s`);
+            text.split('\n').forEach((line) => {
+                addMessage(line);
+            });
+            runme = true;
+
+        };
+
+        (async () => {
+            addMessage('Initializing ...');
+            for (let i = 0; i < 4; i++) {
+                const worker = Tesseract.createWorker({
+                    workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+                    corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+                });
+                await worker.load();
+                await worker.loadLanguage('eng');
+                await worker.initialize('eng');
+                scheduler.addWorker(worker);
+            }
+            addMessage('Initialized Tesseract.js');
+            video.addEventListener('play', () => {
+                timerId = setInterval(doOCR, 1000);
+            });
+            video.addEventListener('pause', () => {
+                clearInterval(timerId);
+            });
+            addMessage('Now you can play the video. :)');
+            video.controls = true; 
+        })();
+
+
+
+        var videoElement = document.querySelector('video');
+        var audioSelect = document.querySelector('select#audioSource');
+        var videoSelect = document.querySelector('select#videoSource');
+
+        audioSelect.onchange = getStream;
+        videoSelect.onchange = getStream;
+
+        getStream().then(getDevices).then(gotDevices);
+
+        function getDevices() {
+            // AFAICT in Safari this only gets default devices until gUM is called :/
+            return navigator.mediaDevices.enumerateDevices();
+        }
+
+        function gotDevices(deviceInfos) {
+            window.deviceInfos = deviceInfos; // make available to console
+            console.log('Available input and output devices:', deviceInfos);
+            for (const deviceInfo of deviceInfos) {
+                const option = document.createElement('option');
+                option.value = deviceInfo.deviceId;
+                if (deviceInfo.kind === 'audioinput') {
+                    option.text = deviceInfo.label || `Microphone ${audioSelect.length + 1}`;
+                    audioSelect.appendChild(option);
+                } else if (deviceInfo.kind === 'videoinput') {
+                    option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+                    videoSelect.appendChild(option);
+                }
+            }
+        }
+
+        function getStream() {
+            if (window.stream) {
+                window.stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+            }
+            const audioSource = audioSelect.value;
+            const videoSource = videoSelect.value;
+            const constraints = {
+                //audio: {
+                //    deviceId: audioSource ? {
+                //        exact: audioSource
+                //    } : undefined
+                //},
+                audio: null,
+                video: {
+                    deviceId: videoSource ? {
+                        exact: videoSource
+                    } : undefined
+                }
+            };
+            navigator.getUserMedia = navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia;
+
+            return navigator.mediaDevices.getUserMedia(constraints).
+                then(gotStream).catch(handleError);
+        }
+
+        function gotStream(stream) {
+            window.stream = stream; // make stream available to console
+            audioSelect.selectedIndex = [...audioSelect.options].
+                findIndex(option => option.text === stream.getAudioTracks()[0].label);
+            videoSelect.selectedIndex = [...videoSelect.options].
+                findIndex(option => option.text === stream.getVideoTracks()[0].label);
+            videoElement.srcObject = stream;
+            videoElement.play;
+        }
+
+        function handleError(error) {
+            console.error('Error: ', error);
+        }
+ 
+    }
+
+</script>

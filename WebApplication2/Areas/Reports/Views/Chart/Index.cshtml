@@ -1,0 +1,6 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout == true ? null : "_Layout";
+}
+<h1>Chart</h1>
+<a asp-area="Reports" asp-controller="Chart" asp-action="Test" data-ajax="true" data-ajax-update="#maincontent">Test Chart Download</a>

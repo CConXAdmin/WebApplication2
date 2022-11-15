@@ -8,11 +8,39 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Areas\Reports\Views\Calendar\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Calendar\Test.cshtml" />
+    <Content Remove="Areas\Reports\Views\Chart\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Chart\Test.cshtml" />
+    <Content Remove="Areas\Reports\Views\Excel\Import.cshtml" />
+    <Content Remove="Areas\Reports\Views\Excel\Import2.cshtml" />
+    <Content Remove="Areas\Reports\Views\Excel\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\File\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\File\Test.cshtml" />
+    <Content Remove="Areas\Reports\Views\Home\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Map\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Map\Test.cshtml" />
+    <Content Remove="Areas\Reports\Views\Pdf\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Pdf\Index2.cshtml" />
+    <Content Remove="Areas\Reports\Views\Web\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\Web\Test.cshtml" />
+    <Content Remove="Areas\Reports\Views\Zip\Import.cshtml" />
+    <Content Remove="Areas\Reports\Views\Zip\Index.cshtml" />
+    <Content Remove="Areas\Reports\Views\_ViewImports.cshtml" />
+    <Content Remove="Areas\Reports\Views\_ViewStart.cshtml" />
+    <Content Remove="Areas\Report\Views\File\Index.cshtml" />
+    <Content Remove="Areas\Report\Views\File\Test.cshtml" />
+    <Content Remove="Areas\Report\Views\MyFiles\Index.cshtml" />
+    <Content Remove="Areas\Report\Views\MyFiles\Test.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.10" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +48,37 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\" />
+    <None Include="Areas\Reports\Views\Calendar\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Calendar\Test.cshtml" />
+    <None Include="Areas\Reports\Views\Chart\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Chart\Test.cshtml" />
+    <None Include="Areas\Reports\Views\Excel\Import.cshtml" />
+    <None Include="Areas\Reports\Views\Excel\Import2.cshtml" />
+    <None Include="Areas\Reports\Views\Excel\Index.cshtml" />
+    <None Include="Areas\Reports\Views\File\Index.cshtml" />
+    <None Include="Areas\Reports\Views\File\Test.cshtml" />
+    <None Include="Areas\Reports\Views\Home\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Map\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Map\Test.cshtml" />
+    <None Include="Areas\Reports\Views\Pdf\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Pdf\Index2.cshtml" />
+    <None Include="Areas\Reports\Views\Web\Index.cshtml" />
+    <None Include="Areas\Reports\Views\Web\Test.cshtml" />
+    <None Include="Areas\Reports\Views\Zip\Import.cshtml" />
+    <None Include="Areas\Reports\Views\Zip\Index.cshtml" />
+    <None Include="Areas\Reports\Views\_ViewImports.cshtml" />
+    <None Include="Areas\Reports\Views\_ViewStart.cshtml" />
+    <None Include="Areas\Report\Views\File\Index.cshtml" />
+    <None Include="Areas\Report\Views\File\Test.cshtml" />
+    <None Include="Areas\Report\Views\MyFiles\Index.cshtml" />
+    <None Include="Areas\Report\Views\MyFiles\Test.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Report\Data\" />
+    <Folder Include="Areas\Report\Models\" />
+    <Folder Include="Areas\Test\Data\" />
+    <Folder Include="Areas\Test\Models\" />
   </ItemGroup>
 
 </Project>

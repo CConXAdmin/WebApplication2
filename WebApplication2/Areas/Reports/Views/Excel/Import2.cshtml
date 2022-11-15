@@ -1,0 +1,41 @@
+﻿@model List<List<string>>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = null;
+}
+ 
+
+<strong class="fg-red"> @ViewBag.Error</strong>
+
+@if (Model != null)
+{ 
+    <table class="table row-hover subcompact " data-role="table" data-horizontal-scroll="true" data-check="true">
+        <thead>
+            <tr>
+                @foreach (var item in Model[0]){
+                    <th data-sortable="true">
+                       @Html.Raw(@item)
+                    </th>
+                }   
+            </tr>
+        </thead>
+        <tbody>
+            @for (var row=1;row<Model.Count();row++)
+            { 
+                <tr >
+                @for (var col = 0; col < Model[row].Count(); col++)
+                {  
+                    <td>
+                            @Html.Raw( @Model[row][col]) 
+                    </td> 
+                }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else{
+    <p>Nothing to show</p>
+}

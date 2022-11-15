@@ -1,0 +1,483 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = null;
+}@{
+
+    ViewBag.Area = 1;
+    ViewBag.Lat = -26;
+    ViewBag.Lng = 28;
+    ViewBag.Zm = 14;
+}
+
+<div id="map" class="fg-black"></div>
+<button onclick="im.stop()"></button>
+<button onclick="im.add()">Add</button>
+
+<script>
+    var im
+    $(function () {
+        im = $("#map").plugin({
+            page: 1,
+            callback: function () {
+            },
+            onmove: function (t,el) {
+                console.log("onmove",t, el)
+            },
+            oncreate: function (t,el) {
+                console.log("oncreate",t, el)
+            },
+        });
+    })
+</script>
+
+<script>
+    $.fn.plugin = function (options) {
+        var settings = $.extend({
+            page: 0,
+            callback: function () { },
+            onmove: function () { },
+            oncreate: function () { },
+            background: "blue",
+            markericon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+            fillopacity: 0.6,
+            fillcolor: "#FFFF00",
+        }, options);
+
+        var me = this;
+        function init() {
+            if ($(me).hasClass("map")) {
+
+            } else {
+                $(me).addClass("map")
+                $(`<div id="info"></div>`).insertAfter($(me))
+                $(`<div>INFO:</div>`).insertAfter($(me))
+                initMap()
+            }
+            //me.html(settings.page)
+        }
+        var map, heatmap;
+        function initMap() {
+            // The location of Uluru
+            const temi = { lat: @ViewBag.Lat, lng: @ViewBag.Lng};
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: @ViewBag.Zm,
+                center: temi,
+                mapTypeId: 'satellite'
+            });
+            map.addListener("center_changed", () => {
+               // map.panTo(marker.getPosition() as google.maps.LatLng);
+                settings.onmove.call(this, "map center", map.getCenter())
+            });
+            map.addListener("zoom_changed", () => {
+                settings.onmove.call(this, "map zoom", map.getZoom())
+            });
+            // The marker, positioned at Uluru
+            const marker = new google.maps.Marker({
+                position: temi,
+                map: map,
+            });
+            infoWindow = new google.maps.InfoWindow();
+
+            const locationButton = document.createElement("button");
+
+            locationButton.textContent = "Pan to Current Location";
+            locationButton.classList.add("custom-map-control-button");
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
+            locationButton.addEventListener("click", () => {
+                // Try HTML5 geolocation.
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const pos = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                            };
+
+                            infoWindow.setPosition(pos);
+                            infoWindow.setContent("Location found.");
+                            infoWindow.open(map);
+                            map.setCenter(pos);
+                        },
+                        () => {
+                            handleLocationError(true, infoWindow, map.getCenter());
+                        }
+                    );
+                } else {
+                    // Browser doesn't support Geolocation
+                    handleLocationError(false, infoWindow, map.getCenter());
+                }
+            });
+            console.log(" google.maps.drawing.ControlPosition", google.maps.drawing.ControlPosition)
+            console.log(" google.maps.drawing.OverlayType", google.maps.drawing.ControlPosition)
+            const drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: null, //nullgoogle.maps.drawing.OverlayType.MARKER,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    //drawingModes: [
+                    //  google.maps.drawing.OverlayType.POLYGON,
+                    //],
+                },
+                markerOptions: {
+                    icon: settings.markericon,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                },
+                polygonOptions: {
+                    fillColor: settings.fillcolor,
+                    fillOpacity: settings.fillopacity,
+                    strokeWeight: 5,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    zIndex: 1,
+                },
+                polylineOptions: {
+                    fillColor: settings.fillcolor,
+                    fillOpacity: settings.fillopacity,
+                    strokeWeight: 5,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    zIndex: 1,
+                },
+                circleOptions: {
+                    fillColor: settings.fillcolor,
+                    fillOpacity: settings.fillopacity,
+                    strokeWeight: 5,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    zIndex: 1,
+                },
+                rectangleOptions: {
+                    fillColor: settings.fillcolor,
+                    fillOpacity: settings.fillopacity,
+                    strokeWeight: 5,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    zIndex: 1,
+                },
+            });
+
+            drawingManager.setMap(map);
+            google.maps.event.addListener(drawingManager, 'markercomplete', function (marker) {
+                marker.addListener("click", () => {
+                    settings.onmove.call(this, "marker click", marker.getPosition())
+                });
+
+                google.maps.event.addListener(marker, 'dragend', () => {
+                    settings.onmove.call(this, "marker drag", marker)
+                });
+                settings.oncreate.call(this, "marker", marker)
+            });
+            google.maps.event.addListener(drawingManager, 'rectanglecomplete', function (rectangle) {
+                const measurementBox = new google.maps.InfoWindow({
+                    content: 'Blank',
+                    ariaLabel: "Uluru",
+                });
+                const bounds = rectangle.getBounds();
+
+                var areaPath = [
+                    new google.maps.LatLng(bounds.getNorthEast().lat(), bounds.getNorthEast().lng()),
+                    new google.maps.LatLng(bounds.getNorthEast().lat(), bounds.getSouthWest().lng()),
+                    new google.maps.LatLng(bounds.getSouthWest().lat(), bounds.getSouthWest().lng()),
+                    new google.maps.LatLng(bounds.getSouthWest().lat(), bounds.getNorthEast().lng()),
+                    new google.maps.LatLng(bounds.getNorthEast().lat(), bounds.getNorthEast().lng()),
+                ];
+
+                var Area = google.maps.geometry.spherical.computeArea(areaPath);
+
+                const squareMeters = Area.toFixed(2)
+
+                google.maps.event.addListener(rectangle, 'mouseover', () => {
+                    measurementBox.setContent(`<p>${squareMeters} sqm.<p/>`)
+                    measurementBox.open(map)
+                })
+                google.maps.event.addListener(rectangle, 'mousemove', (e) => {
+                    measurementBox.setPosition(e.latLng)
+                })
+                google.maps.event.addListener(rectangle, 'mouseout', () => {
+                    measurementBox.close()
+                })
+                settings.oncreate.call(this, "rectangle", rectangle)
+
+                google.maps.event.addListener(rectangle, 'dragend', () => {
+                    settings.onmove.call(this, "rectangle drag", rectangle)
+                })
+                google.maps.event.addListener(rectangle, 'click', function () {
+                    google.maps.event.addListener(rectangle, 'bounds_changed', function (event) {
+                        const ne = rectangle.getBounds().getNorthEast();
+                        const sw = rectangle.getBounds().getSouthWest();
+                        const contentString =
+                            "<b>Rectangle moved.</b><br>" +
+                            "New north-east corner: " +
+                            ne.lat() +
+                            ", " +
+                            ne.lng() +
+                            "<br>" +
+                            "New south-west corner: " +
+                            sw.lat() +
+                            ", " +
+                            sw.lng();
+ 
+                        settings.onmove.call(me, "rectangle bounds", contentString)
+                    }); 
+                });
+
+
+            });
+            google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {
+                const measurementBox = new google.maps.InfoWindow({
+                    content: 'Blank',
+                    ariaLabel: "Uluru",
+                });
+                var radius = circle.getRadius();
+                var area = (radius * radius * Math.PI).toFixed(2)
+
+                google.maps.event.addListener(circle, 'mouseover', () => {
+                    measurementBox.setContent(`<p>${area} sqm.<p/>`)
+                    measurementBox.open(map)
+                })
+                google.maps.event.addListener(circle, 'mousemove', (e) => {
+                    measurementBox.setPosition(e.latLng)
+                })
+                google.maps.event.addListener(circle, 'mouseout', () => {
+                    measurementBox.close()
+                })
+                settings.oncreate.call(this, "circle", circle)
+
+                google.maps.event.addListener(circle, 'radius_changed', function () {
+                    settings.onmove.call(this, "circle radius", circle.getRadius())
+                });
+                google.maps.event.addListener(circle, 'center_changed', function () {
+                    settings.onmove.call(this, "circle center", circle.getCenter())
+                });
+                  
+                google.maps.event.addListener(circle, 'dragend', () => {
+                    settings.onmove.call(this, "circle drag", circle)
+                })
+            });
+            google.maps.event.addListener(drawingManager, 'polylinecomplete', function (polyline) {
+                const measurementBox = new google.maps.InfoWindow({
+                    content: 'Blank',
+                    ariaLabel: "Uluru",
+                });
+                var path = polyline.getPath();
+                var length = google.maps.geometry.spherical.computeLength(path).toFixed(2);
+
+                google.maps.event.addListener(polyline, 'mouseover', () => {
+                    measurementBox.setContent(`<p>${length} m.<p/>`)
+                    measurementBox.open(map)
+                })
+                google.maps.event.addListener(polyline, 'mousemove', (e) => {
+                    measurementBox.setPosition(e.latLng)
+                })
+                google.maps.event.addListener(polyline, 'mouseout', () => {
+                    measurementBox.close()
+                })       
+                google.maps.event.addListener(polyline, 'dragend', () => {
+                    settings.onmove.call(this, "polyline drag", polyline)
+                })
+                settings.oncreate.call(this, "polyline", polyline)
+
+                google.maps.event.addListener(polyline, 'click', function () {
+                    google.maps.event.addListener(polyline.getPath(), 'set_at', function (event) {
+                        console.log("test set", event);
+
+                        var pos = [];
+                        document.getElementById('info').innerHTML = '';
+                        for (var i = 0; i < polyline.getPath().getLength(); i++) {
+                            document.getElementById('info').innerHTML += polyline.getPath().getAt(i).toUrlValue(6) + "<br>";
+                            console.log(polyline.getPath().getAt(i))
+                            var lat = polyline.getPath().getAt(i).lat();
+                            var lng = polyline.getPath().getAt(i).lng();
+
+                            var area = '@ViewBag.Area';
+                            pos.push({ Lat: lat, Lng: lng, Area: area })
+                        }
+                        savepos(pos);
+                        settings.onmove.call(me, "polyline", polyline)
+                    });
+
+                    google.maps.event.addListener(polyline.getPath(), 'insert_at', function (event) {
+                        console.log("test insert", event);
+                        document.getElementById('info').innerHTML = '';
+                        var pos = [];
+                        for (var i = 0; i < polyline.getPath().getLength(); i++) {
+                            document.getElementById('info').innerHTML += polyline.getPath().getAt(i).toUrlValue(6) + "<br>";
+                            var lat = polyline.getPath().getAt(i).lat();
+                            var lng = polyline.getPath().getAt(i).lng();
+
+                            var area = '@ViewBag.Area';
+                            pos.push({ Lat: lat, Lng: lng, Area: area })
+                        }
+                        savepos(pos);
+                        settings.onmove.call(me, "polyline", polyline)
+                    });
+                });
+
+            });
+
+            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+                const measurementBox = new google.maps.InfoWindow({
+                    content: 'Blank',
+                    ariaLabel: "Uluru",
+                });
+
+
+                const polyPath = polygon.getPath()
+                const measurement = google.maps.geometry.spherical.computeArea(polyPath)
+                const squareMeters = measurement.toFixed(2)
+                const squareFeet = (squareMeters * 10.7639).toFixed(2)
+
+                drawingManager.setDrawingMode(null)
+                polygon.setOptions({ zIndex: 1 })
+
+                google.maps.event.addListener(polygon, 'mouseover', () => {
+                    measurementBox.setContent(`<p>${squareMeters} sqm.<p/>`)
+                    measurementBox.open(map)
+                })
+
+                google.maps.event.addListener(polygon, 'mousemove', (e) => {
+                    measurementBox.setPosition(e.latLng)
+                })
+
+                google.maps.event.addListener(polygon, 'mouseout', () => {
+                    measurementBox.close()
+                })
+                      
+                google.maps.event.addListener(polygon, 'dragend', () => {
+                    settings.onmove.call(this, "polygon drag", polygon)
+                })
+                // assuming you want the points in a div with id="info"
+                document.getElementById('info').innerHTML += "polygon points:" + "<br>";
+
+                var pos = [];
+                for (var i = 0; i < polygon.getPath().getLength(); i++) {
+                    document.getElementById('info').innerHTML += polygon.getPath().getAt(i).toUrlValue(6) + "<br>";
+
+                    var lat = polygon.getPath().getAt(i).lat();
+                    var lng = polygon.getPath().getAt(i).lng();
+
+                    var area = '@ViewBag.Area';
+                    pos.push({ Lat: lat, Lng: lng, Area: area })
+                }
+                savepos(pos);
+
+                var newShape = polygon;
+                console.log(polygon)
+                
+                settings.oncreate.call(this, "polygon", polygon)
+
+                google.maps.event.addListener(polygon, 'click', function () {
+
+ 
+                    polygon.setOptions({ fillOpacity: 1, fillColor: '#00FF00' });
+
+                    google.maps.event.addListener(polygon.getPath(), 'set_at', function (event) {
+                        console.log("test set", event);
+
+                        var pos = [];
+                        document.getElementById('info').innerHTML = '';
+                        for (var i = 0; i < polygon.getPath().getLength(); i++) {
+                            document.getElementById('info').innerHTML += polygon.getPath().getAt(i).toUrlValue(6) + "<br>";
+                            console.log(polygon.getPath().getAt(i))
+                            var lat = polygon.getPath().getAt(i).lat();
+                            var lng = polygon.getPath().getAt(i).lng();
+
+                            var area = '@ViewBag.Area';
+                            pos.push({ Lat: lat, Lng: lng, Area: area })
+                        }
+                        savepos(pos);
+                        settings.onmove.call(me, "polygon", polygon)
+                    });
+
+                    google.maps.event.addListener(polygon.getPath(), 'insert_at', function (event) {
+                        console.log("test insert", event);
+                        document.getElementById('info').innerHTML = '';
+                        var pos = [];
+                        for (var i = 0; i < polygon.getPath().getLength(); i++) {
+                            document.getElementById('info').innerHTML += polygon.getPath().getAt(i).toUrlValue(6) + "<br>";
+                            var lat = polygon.getPath().getAt(i).lat();
+                            var lng = polygon.getPath().getAt(i).lng();
+
+                            var area = '@ViewBag.Area';
+                            pos.push({ Lat: lat, Lng: lng, Area: area })
+                        }
+                        savepos(pos);
+                        settings.onmove.call(me, "polygon", polygon)
+                    });
+                });
+            });
+
+            //$.ajax({
+            //    url: `@Url.Content("~/Map/GetPoints/")${@ViewBag.Area}`,
+            //    success: function(data) {
+            //        const triangleCoords = data.points
+            //        // Construct the polygon.
+            //        const bermudaTriangle = new google.maps.Polygon({
+            //            paths: triangleCoords,
+            //            strokeColor: "#FF0000",
+            //            strokeOpacity: 0.8,
+            //            strokeWeight: 2,
+            //            fillColor: "#FF0000",
+            //            fillOpacity: 0.35,
+            //            title: data.desc + "(" + JSON.stringify(data.count) + " items)"
+            //        });
+            //        map.getDiv().setAttribute('title', bermudaTriangle.title);
+
+            //        bermudaTriangle.setMap(map);
+            //        google.maps.event.addListener(bermudaTriangle, 'mouseover', function() {
+            //            this.map.getDiv().setAttribute('title', bermudaTriangle.title);
+            //        });
+            //        google.maps.event.addListener(bermudaTriangle, 'mouseout', function() {
+            //            this.map.getDiv().removeAttribute('title');
+            //        });
+            //        google.maps.event.addListener(bermudaTriangle, 'click', function () {
+            //            alert(bermudaTriangle.title)
+            //        })
+            //    }
+            //})
+
+
+
+
+        }
+        function savepos(pos) {
+            //var id = Number(@ViewBag.Area)
+            //alert("saving" + id)
+            //$.ajax({
+            //    url: "@Url.Content("~/MAreaCoords/Save")",
+            //    method: "POST",
+            //    data: {mAreaCoord:pos,id:id},
+            //    success: function (data){
+            //        alert(data)
+            //    }
+            //})
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(
+                browserHasGeolocation
+                    ? "Error: The Geolocation service failed."
+                    : "Error: Your browser doesn't support geolocation."
+            );
+            infoWindow.open(map);
+        }
+        function stop() {
+            //me.html("stop")
+        }
+        this.css({
+            background: settings.background, width: '100%', height: '500px'
+        })
+        init();
+        return { stop };
+    };
+</script>
+
+

@@ -1,0 +1,6 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout == true ? null : "_Layout";
+}
+<h1>Map</h1>
+<a asp-area="Reports" asp-controller="Map" asp-action="Test" data-ajax="true" data-ajax-update="#maincontent">Test Map Download</a>

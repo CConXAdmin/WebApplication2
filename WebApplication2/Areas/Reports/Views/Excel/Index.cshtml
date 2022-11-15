@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout == true ? null : "_Layout";
+}
+<h1>Excel</h1>
+<a asp-area="Reports" asp-controller="Excel" asp-action="Test">Test Excel Download</a>
+
+
+<form asp-action="TestImport" asp-area="Reports" asp-controller="Excel" onsubmit="AJAXSubmit(this);return false;" class="fg-black">
+    <input type="file" data-role="file" data-on-select="$(this).closest('form').submit()" data-mode="drop" id="file" name="file" data-caption="Drop" data-prepend="Select your excel file(s):" accept=".xlsx">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+</form>
+<form asp-action="TestImport2" asp-area="Reports" asp-controller="Excel" onsubmit="AJAXSubmit(this);return false;" class="fg-black">
+    <input type="file" data-role="file" data-on-select="$(this).closest('form').submit()" data-mode="drop" id="file" name="file" data-caption="Drop" data-prepend="Select your excel file(s):" accept=".xlsx">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+</form>
+<div id="editplace">
+</div>
+
+<script>
+    async function AJAXSubmit(oFormElement) {
+        var formData = new FormData(oFormElement);
+        $.ajax({
+            url: oFormElement.action,
+            type: "POST",
+            data: formData,
+            success: function (data) {
+                $("#editplace").html(data)
+            },
+            error: function (data) {
+                console.log(data)
+                alert('Sorry.');
+            },
+            mimeType: "multipart/form-data",
+            cache: false,
+            contentType: false,
+            processData: false,
+        });
+    }
+</script>

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<ImportModel>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = null;
+}
+ 
+
+<strong class="fg-red"> @ViewBag.Error</strong>
+
+@if (Model != null)
+{ 
+    <table class="table row-hover subcompact " data-role="table" data-horizontal-scroll="true" data-check="true">
+        <thead>
+            <tr> 
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.Col1)
+                </th>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.Col2)
+                </th>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.Col3)
+                </th>  
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var c = item.Col1=="Col1"?"class='bg-red'":"";
+                <tr @c>
+
+                    <td> 
+                        @Html.DisplayFor(modelItem => item.Col1)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Col2) 
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Col3)
+                    </td> 
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else{
+    <p>Nothing to show</p>
+}

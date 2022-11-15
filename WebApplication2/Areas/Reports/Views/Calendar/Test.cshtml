@@ -1,0 +1,371 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = null;
+}
+<style>
+     #external-events {
+         z-index: 2;
+         width: 150px;
+         padding: 0 10px;
+         border: 1px solid #ccc;
+         background: #eee;
+     }
+
+         #external-events .fc-event {
+             cursor: move;
+             margin: 3px 0;
+         }
+
+     #calendar-container {
+         width: 100%;
+         position: relative;
+         z-index: 1;
+     }
+
+     #calendar {
+         max-width: 100%;
+         margin: 20px auto;
+     }
+
+     .fc-daygrid-day-bg {
+         height: 100%;
+         position: absolute;
+         left: 0;
+         top: 0;
+         width: 100%;
+     }
+
+</style>
+<div id="results" class="d-flex">
+
+    <div id='external-events'>
+        <p>
+            <strong>Draggable Events</strong>
+        </p>
+
+        <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event cool-event'>
+            <div class='fc-event-main'>My Event 1</div>
+        </div>
+        <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event cool-event'>
+            <div class='fc-event-main'>My Event 2</div>
+        </div>
+        <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event cool-event'>
+            <div class='fc-event-main'>My Event 3</div>
+        </div>
+        <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event uncool-event'>
+            <div class='fc-event-main'>My Event 4</div>
+        </div>
+        <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event uncool-event'>
+            <div class='fc-event-main'>My Event 5</div>
+        </div>
+
+        <p>
+            <input type='checkbox' id='drop-remove' />
+            <label for='drop-remove'>remove after drop</label>
+        </p>
+    </div>
+
+    <div id='calendar-container'>
+        <div id='calendar'></div>
+    </div>
+
+
+
+</div>
+<button onclick="im.resize()"></button>
+<button onclick="im.gotoDate(new Date())"></button>
+
+<script>
+    var im
+    function windowresize() {
+        setTimeout(function () { im.resize() }, 300)
+    }
+    function gotoDate(date) {
+        im.gotoDate(date)
+    }
+    $(function () {
+        im = $("#results").Cal_plugin({
+            page: 1,
+            callback: function () {
+            },
+        });
+    })
+</script>
+
+<script>
+    $.fn.Cal_plugin = function (options) {
+        var settings = $.extend({
+            page: 0,
+            callback: function () { },
+            background: "blue",
+        }, options);
+
+        var me = this; var calendar
+        function resize() {
+            calendar.updateSize()
+
+
+        }
+        function gotoDate(date) {
+            calendar.gotoDate(date)
+        }
+
+        function init() {
+            if ($(me).hasClass("contactmap")) {
+
+            } else {
+                $(me).addClass("contactmap")
+                var Calendar = FullCalendar.Calendar;
+                var Draggable = FullCalendar.Draggable;
+
+                var containerEl = document.getElementById('external-events');
+                var calendarEl = document.getElementById('calendar');
+                var checkbox = document.getElementById('drop-remove');
+
+                // initialize the external events
+                // -----------------------------------------------------------------
+
+                new Draggable(containerEl, {
+                    itemSelector: '.fc-event',
+                    eventData: function (eventEl) {
+                        return {
+                            title: eventEl.innerText
+                        };
+                    }
+                });
+
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    selectable: true,
+                    initialView: 'dayGridMonth',
+                    initialDate: '2022-08-07',
+                    height: 550,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title,addEventButton',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                    },
+                    customButtons: {
+                        addEventButton: {
+                            text: 'add event...',
+                            click: function () {
+                                var dateStr = prompt('Enter a date in YYYY-MM-DD format');
+                                var date = new Date(dateStr + 'T00:00:00'); // will be in local time
+
+                                if (!isNaN(date.valueOf())) { // valid?
+                                    calendar.addEvent({
+                                        title: 'dynamic event',
+                                        start: date,
+                                        allDay: true
+                                    });
+                                    alert('Great. Now, update your database...');
+                                } else {
+                                    alert('Invalid date.');
+                                }
+                            }
+                        }
+                    },
+                    nowIndicator: true,
+                    now: new Date(),
+                    weekNumbers: true,
+                    businessHours: [ // specify an array instead
+                        {
+                            daysOfWeek: [1, 2, 3], // Monday, Tuesday, Wednesday
+                            startTime: '08:00', // 8am
+                            endTime: '18:00' // 6pm
+                        },
+                        {
+                            daysOfWeek: [4, 5], // Thursday, Friday
+                            startTime: '10:00', // 10am
+                            endTime: '16:00' // 4pm
+                        }
+                    ],
+                    navLinks: true,
+                    navLinkDayClick: function (date, jsEvent) {
+                        console.log('day', date.toISOString());
+                        console.log('coords', jsEvent.pageX, jsEvent.pageY);
+                    },
+                    navLinkWeekClick: function (weekStart, jsEvent) {
+                        console.log('week start', weekStart.toISOString());
+                        console.log('coords', jsEvent.pageX, jsEvent.pageY);
+                    },
+                    //timeZone: 'UTC',
+                    dayMaxEvents: true, // allow "more" link when too many events
+                    editable: true,
+                    droppable: true, // this allows things to be dropped onto the calendar
+                    dropAccept: '.cool-event',
+                    drop: function (info) {
+                        if (!confirm("Drop " + $(info.draggedEl).text() + " on " + info.dateStr + "?")) {
+                            info.revert();
+                            return
+                        }
+
+                        // is the "remove after drop" checkbox checked?
+                        if (checkbox.checked) {
+                            // if so, remove the element from the "Draggable Events" list
+                            info.draggedEl.parentNode.removeChild(info.draggedEl);
+                        }
+                    },
+                    eventAllow: function (dropInfo, draggedEvent) {
+                        if (draggedEvent.extendedProps.status === 'done') {
+                            ;
+                            draggedEvent.setProp("title", "Non" + draggedEvent.title)
+                            draggedEvent.setExtendedProp("status", "notdone")
+                        } else if (draggedEvent.extendedProps.status === 'notdone') {
+                            ;
+                            draggedEvent.setProp("title", "Be" + draggedEvent.title)
+                            draggedEvent.setExtendedProp("status", "done")
+                        }
+
+
+                        if (draggedEvent.groupId === '999') {
+                            return dropInfo.start < new Date(2022, 7, 29); // a boolean
+                        }
+                        else {
+                            return true;
+                        }
+                    },
+                    eventClick: function (info) {
+                        var eventObj = info.event;
+
+                        if (eventObj.url) {
+                            alert(
+                                'Clicked ' + eventObj.title + '.\n' +
+                                'Will open ' + eventObj.url + ' in a new tab'
+                            );
+
+                            window.open(eventObj.url);
+
+                            info.jsEvent.preventDefault(); // prevents browser from following link in current tab.
+                        } else {
+                            alert('Clicked ' + eventObj.title);
+                        }
+                    },
+                    eventResize: function (info) {
+                        alert(info.event.title + " end is now " + info.event.end.toISOString());
+
+                        if (!confirm("is this okay?")) {
+                            info.revert();
+                        }
+                    },
+                    eventDrop: function (info) {
+                        if (info.event.extendedProps.status === 'done') {
+                            info.event.setProp("title", "Non" + info.event.title)
+                            info.event.setExtendedProp("status", "notdone")
+                            console.log("Change done status", info.event)
+                        } else if (info.event.extendedProps.status === 'notdone') {
+                            info.event.setProp("title", "Be" + info.event.title)
+                            info.event.setExtendedProp("status", "done")
+                            console.log("Change done status", info.event)
+                        }
+                        alert(info.event.title + " was dropped on " + info.event.start.toISOString());
+
+                        if (!confirm("Are you sure about this change?")) {
+                            info.revert();
+                        }
+                        console.log("Change done status", info.event)
+                    },
+                    dateClick: function (info) {
+                        alert('clicked ' + info.dateStr);
+                    },
+                    select: function (info) {
+                        alert('selected ' + info.startStr + ' to ' + info.endStr);
+                    },
+                    //eventDidMount: function (info) {
+                    //    //var tooltip = new Tooltip(info.el, {
+                    //    //    title: info.event.extendedProps.description,
+                    //    //    placement: 'top',
+                    //    //    trigger: 'hover',
+                    //    //    container: 'body'
+                    //    //});
+                    //},
+                    eventDidMount: function (info) {
+                        if (info.event.extendedProps.status === 'notdone') {
+
+                            // Change background color of row
+                            info.el.style.backgroundColor = 'green';
+
+                        }
+                        if (info.event.extendedProps.status === 'done') {
+
+                            // Change background color of row
+                            info.el.style.backgroundColor = 'red';
+
+                            // Change color of dot marker
+                            var dotEl = info.el.getElementsByClassName('fc-event-dot')[0];
+                            if (dotEl) {
+                                dotEl.style.backgroundColor = 'white';
+                            }
+                        }
+                    },
+                    events: [
+                        {
+                            title: 'All Day Event',
+                            start: '2022-08-01'
+                        },
+                        {
+                            title: 'Long Event',
+                            start: '2022-08-07',
+                            end: '2022-08-10'
+                        },
+                        {
+                            groupId: '999',
+                            title: 'Repeating Event',
+                            start: '2022-08-09T16:00:00'
+                        },
+                        {
+                            groupId: '999',
+                            title: 'Repeating Event',
+                            start: '2022-08-16T16:00:00'
+                        },
+                        {
+                            title: 'Conference',
+                            start: '2022-08-11',
+                            end: '2022-08-13'
+                        },
+                        {
+                            title: 'Meeting',
+                            start: '2022-08-12T10:30:00',
+                            end: '2022-08-12T12:30:00'
+                        },
+                        {
+                            title: 'Lunch',
+                            start: '2022-08-12T12:00:00'
+                        },
+                        {
+                            title: 'Meeting',
+                            start: '2022-08-12T14:30:00'
+                        },
+                        {
+                            title: 'Birthday Party',
+                            start: '2022-08-13T07:00:00',
+                            extendedProps: {
+                                status: 'done'
+                            }
+                        },
+                        {
+                            title: 'Click for Google',
+                            url: 'http://google.com/',
+                            start: '2022-08-28',
+                            color: 'purple', // override!
+                            backgroundColor: 'green',
+                            borderColor: 'orange'
+                        }
+                    ]
+                });
+
+                calendar.render();
+
+            }
+            //me.html(settings.page)
+        }
+        function stop() {
+            // me.html("stop")
+        }
+        this.css({
+            width: '100%', height: '100%'
+        })
+        init();
+        return { stop, resize, gotoDate };
+    };
+</script>
+

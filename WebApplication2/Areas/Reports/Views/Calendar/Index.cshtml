@@ -1,0 +1,6 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout==true?null:"_Layout";
+}
+<h1>Calendar</h1>
+<a asp-area="Reports" asp-controller="Calendar" asp-action="Test" data-ajax="true" data-ajax-update="#maincontent">Test Calendar Download</a>

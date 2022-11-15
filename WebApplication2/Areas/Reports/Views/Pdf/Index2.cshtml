@@ -1,0 +1,350 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = ViewBag.NoLayout == true ? null : "_Layout";
+}
+<h1>Pdf</h1>
+<a asp-area="Reports" asp-controller="Pdf" asp-action="Test">Test Pdf Download</a>
+
+
+
+<!-- html2canvas library -->
+<script src="~/js/html2canvas.min.js"></script>
+
+<!-- jsPDF library -->
+<script src="~/js/jspdf.umd.js"></script>
+
+<!-- Trigger button -->
+<button onclick="Convert_HTML_To_PDF();">Convert HTML to PDF</button>
+<button onclick="Create_new_PDF();">Create new PDF</button>
+
+<!-- HTML content for PDF creation -->
+<div id="contentToPrint">
+    <h1>Heading</h1>
+    <p>Paragraph</p>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>A</th>
+                <th>B</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>2</td>
+            </tr>
+        </tbody>
+    </table>
+    <img src="~/img/cconx.png">
+</div>
+
+<script>
+    // Convert HTML content to PDF
+    function Convert_HTML_To_PDF() {
+        window.jsPDF = window.jspdf.jsPDF;
+
+        var doc = new jsPDF();
+
+        // Source HTMLElement or a string containing HTML.
+        var elementHTML = document.querySelector("#contentToPrint");
+
+        doc.html(elementHTML, {
+            callback: function(doc) {
+                // Save the PDF
+                doc.save('document-html.pdf');
+            },
+            margin: [10, 10, 10, 10],
+            autoPaging: 'text',
+            x: 0,
+            y: 0,
+            width: 190, //target width in the PDF document
+            windowWidth: 675 //window width in CSS pixels
+        });
+    }
+
+    function Create_new_PDF() {
+        window.jsPDF = window.jspdf.jsPDF;
+
+        var doc = new jsPDF({
+            orientation: 'landscape'
+        });
+
+        doc.text(20, 20, 'Hello world!');
+        doc.text(20, 30, 'This is client-side Javascript to generate a PDF.');
+        doc.setFont("times", "normal");
+        doc.text("This is centred text.", 105, 80, null, 45, "center");
+        // Add new page
+        doc.addPage();
+        doc.text(20, 20, 'Visit CodexWorld.com');
+        doc.addImage("/img/cconx.png", "PNG", 15, 40, 25, 25);
+        // Save the PDF
+        doc.save('document.pdf');
+    }
+
+</script>
+
+ 
+<script src="https://unpkg.com/tesseract.js@2.0.0/dist/tesseract.min.js" integrity="sha384-MTEb82ufpBJ2VCTmPZlD/+vgiT5z6zmOwqU/uDO9IobYm9xCOUEN0WH3czf6ppl8" crossorigin="anonymous"></script>
+@*<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>*@
+
+<button onclick="readpdf()">readpdf</button>
+<button onclick="readpdfrect()">readpdfrect</button>
+<button onclick="readimg()">readimg</button>
+<button onclick="test2()">Init PDF</button>
+ 
+<input type="file" id="uploader">
+<button id="download-pdf" disabled="true">Download PDF</button>
+<ul id="status"></ul>
+<textarea id="result" cols="80" rows="10"></textarea>
+
+<script>
+    function readimg() {
+        initstatus()
+        const worker = Tesseract.createWorker({
+            workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+            logger: m => reportstatus(m),
+        });
+
+        function initstatus() {
+            $("#status").html('')
+            $("#status").append(`<li>loading tesseract core<progress id="load" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing tesseract<progress id="init" value="0" max="1"></li>`)
+            $("#status").append(`<li>loading language traineddata<progress id="lang" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing api<progress id="api" value="0" max="1"></li>`)
+            $("#status").append(`<li>recognizing text<progress id="text" value="0" max="1"></li>`)
+        }
+
+        function reportstatus(m) {
+            if (m.status == "loading tesseract core") $("#load").val(m.progress)
+            else if (m.status == "initializing tesseract") $("#init").val(m.progress)
+            else if (m.status == "loading language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initializing api") $("#api").val(m.progress)
+
+            else if (m.status == "initialized tesseract") $("#init").val(m.progress)
+            else if (m.status == "loaded language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initialized api") $("#api").val(m.progress)
+            else if (m.status == "recognizing text") $("#text").val(m.progress)
+            else console.log(m.status)
+        }
+
+        (async () => {
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            const {
+                data: {
+                    text
+                }
+            } = await worker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png');
+            console.log(text);
+            $("#result").html(text)
+            await worker.terminate();
+        })();
+    }
+
+    function readpdf() {
+        initstatus()
+        const worker = Tesseract.createWorker({
+            workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+            logger: m => reportstatus(m),
+        });
+
+        function initstatus() {
+            $("#status").html('')
+            $("#status").append(`<li>loading tesseract core<progress id="load" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing tesseract<progress id="init" value="0" max="1"></li>`)
+            $("#status").append(`<li>loading language traineddata<progress id="lang" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing api<progress id="api" value="0" max="1"></li>`)
+            $("#status").append(`<li>recognizing text<progress id="text" value="0" max="1"></li>`)
+        }
+
+        function reportstatus(m) {
+            if (m.status == "loading tesseract core") $("#load").val(m.progress)
+            else if (m.status == "initializing tesseract") $("#init").val(m.progress)
+            else if (m.status == "loading language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initializing api") $("#api").val(m.progress)
+
+            else if (m.status == "initialized tesseract") $("#init").val(m.progress)
+            else if (m.status == "loaded language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initialized api") $("#api").val(m.progress)
+            else if (m.status == "recognizing text") $("#text").val(m.progress)
+            else console.log(m.status)
+        }
+        const rectangles = [{
+                left: 0,
+                top: 0,
+                width: 500,
+                height: 120,
+            },
+            {
+                left: 0,
+                top: 120,
+                width: 500,
+                height: 120,
+            },
+        ];
+        (async () => {
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            const values = [];
+            for (let i = 0; i < rectangles.length; i++) {
+                const {
+                    data: {
+                        text
+                    }
+                } = await worker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png', {
+                    rectangle: rectangles[i]
+                });
+                values.push(text);
+            }
+            console.log(values);
+            $("#result").html('')
+            values.forEach(x => {
+                $("#result").append(x)
+            })
+            await worker.terminate();
+        })();
+    }
+
+    function readpdfrect() {
+        initstatus()
+        const worker = Tesseract.createWorker({
+            workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+            logger: m => reportstatus(m),
+        });
+
+        function initstatus() {
+            $("#status").html('')
+            $("#status").append(`<li>loading tesseract core<progress id="load" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing tesseract<progress id="init" value="0" max="1"></li>`)
+            $("#status").append(`<li>loading language traineddata<progress id="lang" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing api<progress id="api" value="0" max="1"></li>`)
+            $("#status").append(`<li>recognizing text<progress id="text" value="0" max="1"></li>`)
+        }
+
+        function reportstatus(m) {
+            if (m.status == "loading tesseract core") $("#load").val(m.progress)
+            else if (m.status == "initializing tesseract") $("#init").val(m.progress)
+            else if (m.status == "loading language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initializing api") $("#api").val(m.progress)
+
+            else if (m.status == "initialized tesseract") $("#init").val(m.progress)
+            else if (m.status == "loaded language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initialized api") $("#api").val(m.progress)
+            else if (m.status == "recognizing text") $("#text").val(m.progress)
+            else console.log(m.status)
+        }
+        const rectangle = {
+            left: 0,
+            top: 0,
+            width: 500,
+            height: 250
+        };
+
+        (async () => {
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            const {
+                data: {
+                    text
+                }
+            } = await worker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png', {
+                rectangle
+            });
+            console.log(text);
+            $("#result").html(text)
+            await worker.terminate();
+        })();
+    }
+
+</script>
+
+<script>
+    function test2() {
+        initstatus()
+
+        function initstatus() {
+            $("#status").html('')
+            $("#status").append(`<li>loading tesseract core<progress id="load" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing tesseract<progress id="init" value="0" max="1"></li>`)
+            $("#status").append(`<li>loading language traineddata<progress id="lang" value="0" max="1"></li>`)
+            $("#status").append(`<li>initializing api<progress id="api" value="0" max="1"></li>`)
+            $("#status").append(`<li>recognizing text<progress id="text" value="0" max="1"></li>`)
+        }
+
+        function reportstatus(m) {
+            if (m.status == "loading tesseract core") $("#load").val(m.progress)
+            else if (m.status == "initializing tesseract") $("#init").val(m.progress)
+            else if (m.status == "loading language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initializing api") $("#api").val(m.progress)
+
+            else if (m.status == "initialized tesseract") $("#init").val(m.progress)
+            else if (m.status == "loaded language traineddata") $("#lang").val(m.progress)
+            else if (m.status == "initialized api") $("#api").val(m.progress)
+            else if (m.status == "recognizing text") $("#text").val(m.progress)
+            else console.log(m.status)
+        }
+        const worker = Tesseract.createWorker({
+            workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
+            logger: m => reportstatus(m),
+        });
+        const uploader = document.getElementById('uploader');
+        const dlBtn = document.getElementById('download-pdf');
+        const recognize = async ({
+            target: {
+                files
+            }
+        }) => {
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            const {
+                data: {
+                    text
+                }
+            } = await worker.recognize(files[0]);
+            const board = document.getElementById('result');
+            board.value = text;
+            dlBtn.disabled = false;
+        };
+        const downloadPDF = async () => {
+            const filename = 'tesseract-ocr-result.pdf';
+            const {
+                data
+            } = await worker.getPDF('Tesseract OCR Result');
+            const blob = new Blob([new Uint8Array(data)], {
+                type: 'application/pdf'
+            });
+            if (navigator.msSaveBlob) {
+                // IE 10+
+                navigator.msSaveBlob(blob, filename);
+            } else {
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        };
+        uploader.addEventListener('change', recognize);
+        dlBtn.addEventListener('click', downloadPDF);
+    }
+
+</script>
+
+ 

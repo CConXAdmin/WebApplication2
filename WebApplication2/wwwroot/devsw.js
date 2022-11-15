@@ -1,4 +1,9 @@
-﻿self.addEventListener('notificationclick', function (event) {
+﻿self.addEventListener('fetch', function (event) {
+    console.log("fetch", event)
+}) 
+
+self.addEventListener('notificationclick', function (event) 
+{
     if (!event.action) { 
         console.log('Notification Click.');
         return;
